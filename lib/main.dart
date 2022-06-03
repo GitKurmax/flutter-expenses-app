@@ -2,6 +2,7 @@ import 'package:expenses/widgets/new_transaction.dart';
 import 'package:flutter/material.dart';
 import './widgets/transaction_list.dart';
 import './models/transaction.dart';
+import './widgets/chart.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,12 +20,19 @@ class MyApp extends StatelessWidget {
             primarySwatch: Colors.purple,
             accentColor: Colors.amber,
           ),
-          textTheme: ThemeData.light().textTheme.copyWith(titleSmall: TextStyle(
-            fontFamily: 'OpenSans', fontWeight: FontWeight.bold, fontSize: 18,
-          )),
+          textTheme: ThemeData.light().textTheme.copyWith(
+                titleSmall: TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
           fontFamily: 'Quicksand',
           appBarTheme: AppBarTheme(
-              titleTextStyle: TextStyle(fontFamily: 'OpenSans', fontSize: 20, fontWeight: FontWeight.bold))),
+              titleTextStyle: TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold))),
       home: MyHomePage(),
     );
   }
@@ -43,12 +51,22 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _userTransactions = [];
 
-  void _addNewTransaction(String txTitle, double txAmount) {
+  List<Transaction> get _recentTransactions {
+    return _userTransactions.where((tx) {
+      return tx.date.isAfter(
+        DateTime.now().subtract(
+          Duration(days: 7),
+        ),
+      );
+    }).toList();
+  }
+
+  void _addNewTransaction(String txTitle, double txAmount, DateTime date) {
     final newTx = Transaction(
         id: DateTime.now().toString(),
         title: txTitle,
         amount: txAmount,
-        date: DateTime.now());
+        date: date);
 
     setState(() {
       _userTransactions.add(newTx);
@@ -76,15 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Container(
-                width: double.infinity,
-                child: const Card(
-                    color: Colors.blue,
-                    elevation: 5,
-                    child: Text(
-                      'CHART',
-                      textAlign: TextAlign.center,
-                    ))),
+            Chart(_recentTransactions),
             TransactionList(_userTransactions)
           ],
         ),
