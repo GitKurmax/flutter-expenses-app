@@ -91,6 +91,47 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Widget _buildChart(MediaQueryData mediaQuery, AppBar appBar, double size) {
+    return Container(
+        height: (mediaQuery.size.height -
+                appBar.preferredSize.height -
+                mediaQuery.padding.top) *
+            size,
+        child: Chart(_recentTransactions));
+  }
+
+  List<Widget> _buildLandscapeMode(
+    MediaQueryData mediaQuery,
+    AppBar appBar,
+    txListWidget,
+  ) {
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('Show Chart'),
+          Switch.adaptive(
+              activeColor: Theme.of(context).colorScheme.primary,
+              value: _showChart,
+              onChanged: (val) {
+                setState(() {
+                  _showChart = val;
+                });
+              })
+        ],
+      ),
+      _showChart ? _buildChart(mediaQuery, appBar, 0.6) : txListWidget
+    ];
+  }
+
+  List<Widget> _buildPortraitMode(
+    MediaQueryData mediaQuery,
+    AppBar appBar,
+    txListWidget,
+  ) {
+    return [_buildChart(mediaQuery, appBar, 0.3), txListWidget];
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -118,29 +159,9 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             if (isLandscape)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Show Chart'),
-                  Switch.adaptive(
-                      activeColor: Theme.of(context).colorScheme.primary,
-                      value: _showChart,
-                      onChanged: (val) {
-                        setState(() {
-                          _showChart = val;
-                        });
-                      })
-                ],
-              ),
-            _showChart || !isLandscape
-                ? Container(
-                    height: (mediaQuery.size.height -
-                            appBar.preferredSize.height -
-                            mediaQuery.padding.top) *
-                        (isLandscape ? 0.6 : 0.3),
-                    child: Chart(_recentTransactions))
-                : txListWidget,
-            if (!isLandscape) txListWidget
+              ..._buildLandscapeMode(mediaQuery, appBar, txListWidget),
+            if (!isLandscape)
+              ..._buildPortraitMode(mediaQuery, appBar, txListWidget)
           ],
         ),
       ),
